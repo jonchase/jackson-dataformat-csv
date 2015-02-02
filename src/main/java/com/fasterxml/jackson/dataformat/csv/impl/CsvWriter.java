@@ -44,8 +44,8 @@ public class CsvWriter
     
     final protected char _cfgColumnSeparator;
 
-    final protected char _cfgQuoteCharacter;
-    
+    final protected int _cfgQuoteCharacter;
+
     final protected char[] _cfgLineSeparator;
 
     final protected int _cfgLineSeparatorLength;
@@ -402,7 +402,7 @@ public class CsvWriter
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        final char q = _cfgQuoteCharacter;
+        final char q = (char) _cfgQuoteCharacter;
         _outputBuffer[_outputTail++] = q;
         // simple case: if we have enough room, no need for boundary checks
         final int len = text.length();
@@ -413,7 +413,7 @@ public class CsvWriter
         for (int i = 0; i < len; ++i) {
             char c = text.charAt(i);
             if (c == q) { // double up
-                _outputBuffer[_outputTail++] = _cfgQuoteCharacter;
+                _outputBuffer[_outputTail++] = (char) _cfgQuoteCharacter;
                 if (_outputTail >= _outputEnd) {
                     _flushBuffer();
                 }
@@ -432,7 +432,7 @@ public class CsvWriter
             }
             char c = text.charAt(i);
             if (c == _cfgQuoteCharacter) { // double up
-                _outputBuffer[_outputTail++] = _cfgQuoteCharacter;
+                _outputBuffer[_outputTail++] = (char) _cfgQuoteCharacter;
                 if (_outputTail >= _outputEnd) {
                     _flushBuffer();
                 }
@@ -442,7 +442,7 @@ public class CsvWriter
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = _cfgQuoteCharacter;
+        _outputBuffer[_outputTail++] = (char) _cfgQuoteCharacter;
     }
     
     public void writeRaw(String text) throws IOException
@@ -566,10 +566,16 @@ public class CsvWriter
 
     /**
      * Helper method that determines whether given String is likely
-     * to require quoting; check tries to optimize for speed.
+     * to require quoting; check tries to optimize for speed.  Also checks
+     * if quotes are disabled (-1).
      */
     protected boolean _mayNeedQuotes(String value, int length)
     {
+        // quotes are disabled
+        if (_cfgQuoteCharacter == -1) {
+            return false;
+        }
+
         // let's not bother checking long Strings, just quote already:
         if (length > MAX_QUOTE_CHECK) {
             return true;

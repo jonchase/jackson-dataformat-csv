@@ -50,6 +50,27 @@ public class TestGenerator extends ModuleTestBase
     /**********************************************************************
      */
 
+    public void testWithQuotes() throws Exception {
+        CsvMapper mapper = mapperForCsv();
+        CsvSchema schema = mapper.schemaFor(FiveMinuteUser.class).withQuoteChar('"');
+
+        FiveMinuteUser user = new FiveMinuteUser("a b c d", "e f g", false, Gender.MALE, new byte[]{1, 2, 3, 4, 5});
+        String result = mapper.writer(schema).writeValueAsString(user);
+
+        assertEquals("\"a b c d\",\"e f g\",MALE,false,AQIDBAU=\n", result);
+    }
+
+    public void testWithoutQuotes() throws Exception{
+
+        CsvMapper mapper = mapperForCsv();
+        CsvSchema schema = mapper.schemaFor(FiveMinuteUser.class).withoutQuoteChar();
+
+        FiveMinuteUser user = new FiveMinuteUser("a b c d", "e f g", false, Gender.MALE, new byte[]{1, 2, 3, 4, 5});
+        String result = mapper.writer(schema).writeValueAsString(user);
+
+        assertEquals("a b c d,e f g,MALE,false,AQIDBAU=\n", result);
+    }
+
     public void testSimpleExplicit() throws Exception
     {
         ObjectMapper mapper = mapperForCsv();

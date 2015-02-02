@@ -76,8 +76,13 @@ public class CsvSchema
     protected final static Column[] NO_COLUMNS = new Column[0];
 
     public final static char DEFAULT_COLUMN_SEPARATOR = ',';
-    
-    public final static char DEFAULT_QUOTE_CHAR = '"';
+
+    /**
+     * By default, a double quote character is used -- use an
+     * int value that does not map to a valid character (-1) to disable
+     * quoting.
+     */
+    public final static int DEFAULT_QUOTE_CHAR = '"';
 
     /**
      * By default, no escape character is used -- this is denoted by
@@ -185,7 +190,8 @@ public class CsvSchema
         
         protected char _columnSeparator = DEFAULT_COLUMN_SEPARATOR;
 
-        protected char _quoteChar = DEFAULT_QUOTE_CHAR;
+        // note: need to use int to allow -1 for 'none'
+        protected int _quoteChar = DEFAULT_QUOTE_CHAR;
 
         // note: need to use int to allow -1 for 'none'
         protected int _escapeChar = DEFAULT_ESCAPE_CHAR;
@@ -285,6 +291,15 @@ public class CsvSchema
         }
 
         /**
+         * Method for specifying that no quote character is to be used
+         * with CSV documents this schema defines.
+         */
+        public Builder disableQuoteChar() {
+            _quoteChar = -1;
+            return this;
+        }
+
+        /**
          * Method for specifying character used for optional escaping
          * of characters in quoted String values.
          * Default is "not used", meaning that no escaping used.
@@ -348,15 +363,15 @@ public class CsvSchema
 
     protected final char _columnSeparator;
 
-    protected final char _quoteChar;
-    
+    protected final int _quoteChar;
+
     protected final int _escapeChar;
     
     protected final char[] _lineSeparator;
     
     public CsvSchema(Column[] columns,
             boolean useHeader, boolean skipFirstDataRow,
-            char columnSeparator, char quoteChar, int escapeChar,
+            char columnSeparator, int quoteChar, int escapeChar,
             char[] lineSeparator)
     {
         if (columns == null) {
@@ -387,7 +402,7 @@ public class CsvSchema
      */
     protected CsvSchema(Column[] columns,
             boolean useHeader, boolean skipFirstDataRow,
-            char columnSeparator, char quoteChar, int escapeChar,
+            char columnSeparator, int quoteChar, int escapeChar,
             char[] lineSeparator,
             Map<String,Column> columnsByName)
     {
@@ -476,7 +491,13 @@ public class CsvSchema
             new CsvSchema(_columns, _useHeader, _skipFirstDataRow,
                     _columnSeparator, c, _escapeChar, _lineSeparator, _columnsByName);
     }
-    
+
+    public CsvSchema withoutQuoteChar() {
+        return (_quoteChar == -1) ? this
+                : new CsvSchema(_columns, _useHeader, _skipFirstDataRow,
+                        _columnSeparator, -1, _escapeChar, _lineSeparator, _columnsByName);
+    }
+
     public CsvSchema withEscapeChar(char c) {
         return (_escapeChar == c) ? this
                 : new CsvSchema(_columns, _useHeader, _skipFirstDataRow,
@@ -519,7 +540,7 @@ public class CsvSchema
     public boolean useHeader() { return _useHeader; }
     public boolean skipFirstDataRow() { return _skipFirstDataRow; }
     public char getColumnSeparator() { return _columnSeparator; }
-    public char getQuoteChar() { return _quoteChar; }
+    public int getQuoteChar() { return _quoteChar; }
     public int getEscapeChar() { return _escapeChar; }
     public char[] getLineSeparator() { return _lineSeparator; }
     
